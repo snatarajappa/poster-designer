@@ -14,12 +14,13 @@
 }
 
 .App-header {
-  min-height: 100vh;
+  height: 10vh;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
+  background: rgb(61, 47, 85);
+  color: white;
 }
 
 .App-link {
@@ -30,10 +31,19 @@
   0% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(10px);
   }
+
   100% {
     transform: translateY(0px);
   }
+}
+
+.canvas-div {
+  background: rgb(178, 182, 180);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

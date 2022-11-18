@@ -1,0 +1,8 @@
+.canvas {
+    background: rgb(255, 255, 255);
+}
+
+.area {
+    display: flex;
+    justify-content: center;
+}

@@ -1,57 +1,37 @@
-import React from 'react';
-import logo from './logo.svg';
-import { Counter } from './features/counter/Counter';
-import './App.css';
+import React, { useState } from "react";
+import "./App.css";
+import { Canvas } from "./features/canvas/Canvas";
+import { Box, Grid } from "@mui/material";
+import { Menu } from "./features/menu/Menu";
+import { SideBar } from "./features/sidebar/SideBar";
 
 function App() {
+  const [lineWidth, setLineWidth] = useState(5);
+  const [lineColor, setLineColor] = useState("black");
+  const [lineOpacity, setLineOpacity] = useState(0.1);
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <Counter />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <span>
-          <span>Learn </span>
-          <a
-            className="App-link"
-            href="https://reactjs.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux-toolkit.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux Toolkit
-          </a>
-          ,<span> and </span>
-          <a
-            className="App-link"
-            href="https://react-redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React Redux
-          </a>
-        </span>
-      </header>
-    </div>
+    <Box sx={{ flexGrow: 1 }}>
+      <Grid container spacing={0}>
+        <Grid item xs={12} className="App-header">
+          <h1>Deisgn App</h1>
+        </Grid>
+      </Grid>
+      <Grid container spacing={0}>
+        <Grid item xs={1}>
+          <SideBar></SideBar>
+        </Grid>
+        <Grid item xs={11}>
+          <Menu
+            setLineColor={setLineColor}
+            setLineWidth={setLineWidth}
+            setLineOpacity={setLineOpacity}
+          />
+          <Grid className="canvas-div">
+            <Canvas />
+          </Grid>
+        </Grid>
+      </Grid>
+    </Box>
   );
 }
 
