@@ -9,4 +9,4 @@ Implemented features:
 * To delete the element, select the element and then press the "Alt" key.
 
 ## For the demo, please refer the video design-app/src/video/video2736820893.mp4
-https://youtu.be/26aDHWTZzq0
+<iframe width="560" height="315" src="https://www.youtube.com/embed/26aDHWTZzq0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
