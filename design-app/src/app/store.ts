@@ -1,9 +1,13 @@
-import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit';
-import counterReducer from '../features/counter/counterSlice';
+import { configureStore, ThunkAction, Action } from "@reduxjs/toolkit";
+import counterReducer from "../features/counter/counterSlice";
+import sideBarReducer from "../features/sidebar/sideBarSlice";
+import menuReducer from "../features/menu/menuSlice";
 
 export const store = configureStore({
   reducer: {
     counter: counterReducer,
+    sideBar: sideBarReducer,
+    menu: menuReducer,
   },
 });
 

@@ -6,9 +6,6 @@ import { Menu } from "./features/menu/Menu";
 import { SideBar } from "./features/sidebar/SideBar";
 
 function App() {
-  const [lineWidth, setLineWidth] = useState(5);
-  const [lineColor, setLineColor] = useState("black");
-  const [lineOpacity, setLineOpacity] = useState(0.1);
   return (
     <Box sx={{ flexGrow: 1 }}>
       <Grid container spacing={0}>
@@ -21,11 +18,7 @@ function App() {
           <SideBar></SideBar>
         </Grid>
         <Grid item xs={11}>
-          <Menu
-            setLineColor={setLineColor}
-            setLineWidth={setLineWidth}
-            setLineOpacity={setLineOpacity}
-          />
+          <Menu />
           <Grid className="canvas-div">
             <Canvas />
           </Grid>

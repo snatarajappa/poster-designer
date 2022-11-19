@@ -2,37 +2,26 @@ import { Button, Grid, Box } from "@mui/material";
 import styles from "./SideBar.module.css";
 import PostAddRoundedIcon from "@mui/icons-material/PostAddRounded";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
-import GestureIcon from "@mui/icons-material/Gesture";
 import HighlightAltIcon from "@mui/icons-material/HighlightAlt";
-import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
-import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import { useState } from "react";
+import { useAppSelector, useAppDispatch } from "../../app/hooks";
+import { selectTool, updateTool } from "./sideBarSlice";
 
 export function SideBar() {
-  const [action, setAction] = useState("text");
+  const tool = useAppSelector(selectTool);
+  const dispatch = useAppDispatch();
+  const [currentTool, updateCurrentTool] = useState(tool);
   return (
     <Box sx={{ flexGrow: 1 }} className={styles.SideBar}>
       <Grid className={styles.Icon}></Grid>
-      {/* <Grid className={styles.Icon}></Grid> */}
       <Grid className={styles.Icon}>
         <Button
-          variant={action === "draw" ? "contained" : "outlined"}
-          startIcon={<GestureIcon />}
-          className={styles.ActionButton}
-          onClick={() => {
-            setAction("draw");
-          }}
-        >
-          Draw
-        </Button>
-      </Grid>
-      <Grid className={styles.Icon}>
-        <Button
-          variant={action === "text" ? "contained" : "outlined"}
+          variant={currentTool === "text" ? "contained" : "outlined"}
           startIcon={<PostAddRoundedIcon />}
           className={styles.ActionButton}
           onClick={() => {
-            setAction("text");
+            updateCurrentTool("text");
+            dispatch(updateTool("text"));
           }}
         >
           Text
@@ -40,11 +29,12 @@ export function SideBar() {
       </Grid>
       <Grid className={styles.Icon}>
         <Button
-          variant={action === "photos" ? "contained" : "outlined"}
+          variant={currentTool === "image" ? "contained" : "outlined"}
           startIcon={<AddPhotoAlternateIcon />}
           className={styles.ActionButton}
           onClick={() => {
-            setAction("photos");
+            updateCurrentTool("image");
+            dispatch(updateTool("image"));
           }}
         >
           Photos
@@ -52,38 +42,15 @@ export function SideBar() {
       </Grid>
       <Grid className={styles.Icon}>
         <Button
-          variant={action === "shape" ? "contained" : "outlined"}
-          startIcon={<AddCircleOutlineRoundedIcon />}
-          className={styles.ActionButton}
-          onClick={() => {
-            setAction("shape");
-          }}
-        >
-          Shape
-        </Button>
-      </Grid>
-      <Grid className={styles.Icon}>
-        <Button
-          variant={action === "select" ? "contained" : "outlined"}
+          variant={currentTool === "selection" ? "contained" : "outlined"}
           startIcon={<HighlightAltIcon />}
           className={styles.ActionButton}
           onClick={() => {
-            setAction("select");
+            updateCurrentTool("selection");
+            dispatch(updateTool("selection"));
           }}
         >
           Select
-        </Button>
-      </Grid>
-      <Grid className={styles.Icon}>
-        <Button
-          variant={action === "delete" ? "contained" : "outlined"}
-          startIcon={<DeleteRoundedIcon />}
-          className={styles.ActionButton}
-          onClick={() => {
-            setAction("delete");
-          }}
-        >
-          Delete
         </Button>
       </Grid>
     </Box>
