@@ -2,12 +2,15 @@ import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import styles from "./Canvas.module.css";
 import { Grid } from "@mui/material";
 import image1 from "../../images/staples.png";
+import image2 from "../../images/image2.png";
 import { useAppSelector } from "../../app/hooks";
 import { selectTool } from "../sidebar/sideBarSlice";
-import { selectTextColor } from "../menu/menuSlice";
+import { selectTextColor, selectImageSrc } from "../menu/menuSlice";
 
 export function Canvas() {
   const textColor = useAppSelector(selectTextColor);
+  const currentImageSrc = useAppSelector(selectImageSrc);
+  const [imageSrc, setImageSrc] = useState(currentImageSrc);
   const canvasRef = useRef();
   // const ctxRef = useRef();
   const textAreaRef = useRef();
@@ -35,14 +38,15 @@ export function Canvas() {
       textArea.value = selectedElement.text;
     }
     setTool(currentTool);
-  }, [action, selectedElement, currentTool]);
+    setImageSrc(currentImageSrc);
+  }, [action, selectedElement, currentTool, currentImageSrc]);
 
   const createElement = (idx, x1, y1, x2, y2, type, properties) => {
     switch (type) {
       case "text":
         return { idx, type, x1, y1, x2, y2, text: "", properties: properties };
       case "image":
-        return { idx, type, x1, y1, x2, y2 };
+        return { idx, type, x1, y1, x2, y2, properties: properties };
       default:
         throw new Error(`Type not recognised: ${type}`);
     }
@@ -58,28 +62,28 @@ export function Canvas() {
         break;
       case "image":
         context.drawImage(
-          document.getElementById("img"),
+          element.properties?.imageSrc === "image1"
+            ? document.getElementById("img1")
+            : document.getElementById("img2"),
           element.x1,
           element.y1,
-          200,
-          100
+          element.x2 - element.x1,
+          element.y2 - element.y1
         );
         break;
       default:
         throw new Error(`Type not recognised: ${element.type}`);
     }
   };
-  const updateElement = (idx, x1, y1, x2, y2, type, options) => {
+  const updateElement = (idx, x1, y1, x2, y2, type, options, properties) => {
     const elementsCopy = [...elements];
+
     switch (type) {
       case "text":
         const canvas = canvasRef.current;
         const context = canvas.getContext("2d");
         const textWidth = context.measureText(options.text).width;
         const textHeight = 24;
-        const properties = {
-          textColor: textColor,
-        };
         elementsCopy[idx] = {
           ...createElement(
             idx,
@@ -94,6 +98,15 @@ export function Canvas() {
         };
         break;
       case "image":
+        elementsCopy[idx] = createElement(
+          idx,
+          x1,
+          y1,
+          x2,
+          y2,
+          type,
+          properties
+        );
         break;
       default:
         throw new Error(`Type not recognised: ${type}`);
@@ -105,15 +118,37 @@ export function Canvas() {
   const handleKeyDown = (event) => {
     const key = window.event.keyCode;
     if (key === 13) {
-      const { idx, x1, y1, type } = selectedElement;
+      const { idx, x1, y1, type, properties } = selectedElement;
       setAction("none");
       setSelectedElement(null);
-      updateElement(idx, x1, y1, null, null, type, {
-        text: event.target.value,
+      updateElement(
+        idx,
+        x1,
+        y1,
+        null,
+        null,
+        type,
+        {
+          text: event.target.value,
+        },
+        properties
+      );
+    }
+
+    if (key === 18) {
+      const { idx } = selectedElement;
+      setAction("none");
+      setSelectedElement(null);
+      const filteredElements = elements.filter((ele) => {
+        if (ele.idx !== idx) {
+          return ele;
+        }
       });
+      setElements(filteredElements, true);
     }
   };
 
+  document.onkeydown = handleKeyDown;
   const getElementAtPosition = (x, y, elements) => {
     return elements
       .map((element) => ({
@@ -125,17 +160,6 @@ export function Canvas() {
 
   const nearPoint = (x, y, x1, y1, name) => {
     return Math.abs(x - x1) < 5 && Math.abs(y - y1) < 5 ? name : null;
-  };
-
-  const distance = (a, b) =>
-    Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
-
-  const onLine = (x1, y1, x2, y2, x, y, maxDistance = 1) => {
-    const a = { x: x1, y: y1 };
-    const b = { x: x2, y: y2 };
-    const c = { x, y };
-    const offset = distance(a, b) - (distance(a, c) + distance(b, c));
-    return Math.abs(offset) < maxDistance ? "inside" : null;
   };
 
   const positionWithinElement = (x, y, element) => {
@@ -158,14 +182,17 @@ export function Canvas() {
 
   const handleMouseDown = (e) => {
     const { clientX, clientY } = e;
+    const bb = canvasRef.current.getBoundingClientRect();
+    const x = clientX - bb.left;
+    const y = clientY - bb.top;
     if (action === "writing") return;
     if (tool === "selection") {
       //Write selection logic
-      const element = getElementAtPosition(clientX, clientY, elements);
+      const element = getElementAtPosition(x, y, elements);
 
       if (element) {
-        const offsetX = clientX - element.x1;
-        const offsetY = clientY - element.y1;
+        const offsetX = x - element.x1;
+        const offsetY = y - element.y1;
         setSelectedElement({ ...element, offsetX, offsetY });
         setElements((prevState) => prevState);
         if (element.position === "inside") {
@@ -176,13 +203,25 @@ export function Canvas() {
       }
     } else {
       const idx = elements.length;
-      const bb = canvasRef.current.getBoundingClientRect();
-      const x = clientX - bb.left;
-      const y = clientY - bb.top;
       const properties = {
         textColor: textColor,
+        imageSrc: imageSrc,
       };
-      const element = createElement(idx, x, y, x, y, tool, properties);
+      let width = 0;
+      let height = 0;
+      if (tool === "image") {
+        width = 200;
+        height = 100;
+      }
+      const element = createElement(
+        idx,
+        x,
+        y,
+        x + width,
+        y + height,
+        tool,
+        properties
+      );
       setElements((prevState) => [...prevState, element]);
       setSelectedElement(element);
       setAction(tool === "text" ? "writing" : "drawing");
@@ -191,7 +230,7 @@ export function Canvas() {
 
   const adjustElementCoordinates = (element) => {
     const { type, x1, y1, x2, y2 } = element;
-    if (type === "rectangle") {
+    if (type === "image") {
       const minX = Math.min(x1, x2);
       const maxX = Math.max(x1, x2);
       const minY = Math.min(y1, y2);
@@ -208,27 +247,31 @@ export function Canvas() {
 
   const handleMouseUp = (e) => {
     const { clientX, clientY } = e;
+    const bb = canvasRef.current.getBoundingClientRect();
+    const x = clientX - bb.left;
+    const y = clientY - bb.top;
     if (selectedElement) {
       if (
         selectedElement.type === "text" &&
-        clientX - selectedElement.offsetX === selectedElement.x1 &&
-        clientY - selectedElement.offsetY === selectedElement.y1
+        x - selectedElement.offsetX === selectedElement.x1 &&
+        y - selectedElement.offsetY === selectedElement.y1
       ) {
         setAction("writing");
         return;
       }
       const index = selectedElement.idx;
+      const properties = selectedElement.properties;
       const { idx, type } = elements[index];
       if ((action === "drawing" || action === "resizing") && type === "image") {
         const { x1, y1, x2, y2 } = adjustElementCoordinates(elements[index]);
-        updateElement(idx, x1, y1, x2, y2, type);
+        updateElement(idx, x1, y1, x2, y2, type, {}, properties);
       }
     }
 
     if (action === "writing") return;
 
     setAction("none");
-    setSelectedElement(null);
+    // setSelectedElement(null);
   };
   const cursorForPosition = (position) => {
     switch (position) {
@@ -264,9 +307,11 @@ export function Canvas() {
 
   const handleMouseMove = (e) => {
     const { clientX, clientY } = e;
-
+    const bb = canvasRef.current.getBoundingClientRect();
+    const x = clientX - bb.left;
+    const y = clientY - bb.top;
     if (tool === "selection") {
-      const element = getElementAtPosition(clientX, clientY, elements);
+      const element = getElementAtPosition(x, y, elements);
       e.target.style.cursor = element
         ? cursorForPosition(element.position)
         : "default";
@@ -274,14 +319,15 @@ export function Canvas() {
 
     if (action === "drawing") {
       const index = elements.length - 1;
-      const { x1, y1 } = elements[index];
-      updateElement(index, x1, y1, clientX, clientY, tool);
+      const { x1, y1, properties } = elements[index];
+      updateElement(index, x1, y1, x, y, tool, {}, properties);
     } else if (action === "moving") {
-      const { idx, x1, x2, y1, y2, type, offsetX, offsetY } = selectedElement;
+      const { idx, x1, x2, y1, y2, type, offsetX, offsetY, properties } =
+        selectedElement;
       const width = x2 - x1;
       const height = y2 - y1;
-      const newX1 = clientX - offsetX;
-      const newY1 = clientY - offsetY;
+      const newX1 = x - offsetX;
+      const newY1 = y - offsetY;
       const options = type === "text" ? { text: selectedElement.text } : {};
       updateElement(
         idx,
@@ -290,24 +336,27 @@ export function Canvas() {
         newX1 + width,
         newY1 + height,
         type,
-        options
+        options,
+        properties
       );
     } else if (action === "resizing") {
-      const { id, type, position, ...coordinates } = selectedElement;
+      const { idx, type, position, properties, ...coordinates } =
+        selectedElement;
       const { x1, y1, x2, y2 } = resizedCoordinates(
-        clientX,
-        clientY,
+        x,
+        y,
         position,
         coordinates
       );
-      updateElement(id, x1, y1, x2, y2, type);
+      updateElement(idx, x1, y1, x2, y2, type, {}, properties);
     }
   };
 
   return (
     <Grid item xs={10} className={styles.area}>
       <div className={styles.image}>
-        <img src={image1} alt="" id="img" />
+        <img src={image1} alt="" id="img1" />
+        <img src={image2} alt="" id="img2" />
       </div>
       {action === "writing" ? (
         <textarea
